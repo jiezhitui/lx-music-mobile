@@ -15,11 +15,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'yarn'
 
       - name: Install Dependencies
         run: |
-          yarn install
+          npm install
 
       - name: Setup CocoaPods
         run: |
@@ -29,7 +28,6 @@ jobs:
       - name: Build iOS Archive & Package IPA
         run: |
           cd ios
-          # 自动寻找目录下的 .xcworkspace 文件，避免文件名硬编码出错
           WORKSPACE_NAME=$(ls -d *.xcworkspace | head -n 1)
           SCHEME_NAME=$(basename "$WORKSPACE_NAME" .xcworkspace)
           
