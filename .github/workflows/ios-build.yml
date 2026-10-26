@@ -15,6 +15,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: 'yarn'
 
       - name: Install Dependencies
         run: |
@@ -28,15 +29,23 @@ jobs:
       - name: Build iOS Archive & Package IPA
         run: |
           cd ios
-          xcodebuild -workspace lx_music_mobile.xcworkspace \
-                     -scheme lx_music_mobile \
+          # 自动寻找目录下的 .xcworkspace 文件，避免文件名硬编码出错
+          WORKSPACE_NAME=$(ls -d *.xcworkspace | head -n 1)
+          SCHEME_NAME=$(basename "$WORKSPACE_NAME" .xcworkspace)
+          
+          echo "Found workspace: $WORKSPACE_NAME"
+          echo "Using scheme: $SCHEME_NAME"
+
+          set -o pipefail
+          xcodebuild -workspace "$WORKSPACE_NAME" \
+                     -scheme "$SCHEME_NAME" \
                      -sdk iphoneos \
                      -configuration Release \
                      -archivePath ./build/lx_music_mobile.xcarchive \
                      archive CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
 
           mkdir -p ./build/Payload
-          cp -r ./build/lx_music_mobile.xcarchive/Products/Applications/lx_music_mobile.app ./build/Payload/
+          cp -r ./build/lx_music_mobile.xcarchive/Products/Applications/*.app ./build/Payload/
           cd build
           zip -r lx-music-mobile-unsigned.ipa Payload
 
